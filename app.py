@@ -13,18 +13,35 @@ session = DBSession()
 
 
 @app.route('/')
-@app.route('/hello')
-def HelloWorld():
-    category = session.query(Category).first()
-    items = session.query(Item).filter_by(category_id=category.id)
-    output = ''
-    for i in items:
-        output += i.name
-        output += '</br>'
-        output += i.description
-        output += '</br>'
-        output += '</br>'
-    return output
+@app.route('/catalog/')
+def showCatalog():
+    return 'page to show catalog'
+
+
+@app.route('/catalog/<string:category_name>/items')
+def showCategory(category_name):
+    return 'page to show category items'
+
+
+@app.route('/catalog/<string:category_name>/<string:item_name>')
+def showItem(category_name,item_name):
+    return 'page to show item'
+
+
+@app.route('/catalog/new')
+def newItem():
+    return 'page to create a new item'
+
+
+@app.route('/catalog/<string:item_name>/edit')
+def editItem(item_name):
+    return 'page to edit an item'
+
+
+@app.route('/catalog/<string:item_name>/delete')
+def deleteItem(item_name):
+    return 'page to delete an item'
+
 
 if __name__ == '__main__':
     app.debug = True
