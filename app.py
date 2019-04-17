@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item
@@ -15,7 +15,13 @@ session = DBSession()
 @app.route('/')
 @app.route('/catalog/')
 def showCatalog():
-    return 'page to show catalog'
+    categories = session.query(Category).all()
+    items = []
+    for category in categories:
+        categoryItems = session.query(Item).filter_by(category_id=category.id)
+        for item in categoryItems:
+            items.append(item)
+    return render_template('catalog.html', categories=categories, items=items)
 
 
 @app.route('/catalog/<string:category_name>/items')
