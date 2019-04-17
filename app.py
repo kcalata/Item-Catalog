@@ -5,7 +5,8 @@ from database_setup import Base, Category, Item
 
 app = Flask(__name__)
 
-engine = create_engine('sqlite:///itemcatalog.db')
+engine = create_engine('sqlite:///itemcatalog.db',
+connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -26,7 +27,9 @@ def showCatalog():
 
 @app.route('/catalog/<string:category_name>/items')
 def showCategory(category_name):
-    return 'page to show category items'
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Item).filter_by(category_id=category.id)
+    return render_template('category.html', category=category, items=items)
 
 
 @app.route('/catalog/<string:category_name>/<string:item_name>')
