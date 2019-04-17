@@ -2,15 +2,13 @@
 
 <body>
 
-<h1>{{category.name}}</h1>
+<h1>{{category.name}} Items ({{items.count()}} items)</h1>
 
 {% for i in items %}
 
 <div>
 
 <p>{{i.name}}</p>
-
-<p>{{i.description}}</p>
 
 </div>
 
