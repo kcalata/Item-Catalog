@@ -14,7 +14,7 @@
 
 {% endfor %}
 
-<h1>{{category.name}} Items ({{items.count()}} items)</h1>
+<h1>{{category.name}} ({{items.count()}} {{category.name.lower()}})</h1>
 
 {% for i in items %}
 
