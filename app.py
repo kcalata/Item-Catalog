@@ -25,14 +25,14 @@ def showCatalog():
 def showCategory(category_name):
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(name=category_name).one()
-    items = session.query(Item).filter_by(category_id=category.id)
+    items = session.query(Item).filter_by(category_name=category.name)
     return render_template('category.html', categories=categories, category=category, items=items)
 
 
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def showItem(category_name,item_name):
     category = session.query(Category).filter_by(name=category_name).one()
-    item = session.query(Item).filter_by(category_id=category.id).filter_by(name=item_name).one()
+    item = session.query(Item).filter_by(category_name=category.name).filter_by(name=item_name).one()
     return render_template('item.html',item=item)
 
 
