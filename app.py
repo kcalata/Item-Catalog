@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item
@@ -39,9 +39,16 @@ def showItem(category_name,item_name):
     return render_template('item.html', categories=categories, item=item)
 
 
-@app.route('/catalog/new')
+@app.route('/catalog/new', methods=['GET', 'POST'])
 def newItem():
-    return 'page to create a new item'
+    categories = session.query(Category).all()
+    if request.method == 'POST':
+        newItem = Item(name=request.form['dessert'], description=request.form['description'], category_name=request.form['category'])
+        session.add(newItem)
+        session.commit()
+        return redirect(url_for('showCatalog'))
+    else:
+        return render_template('newItem.html', categories=categories)
 
 
 @app.route('/catalog/<string:item_name>/edit')
