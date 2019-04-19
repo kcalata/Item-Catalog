@@ -2,6 +2,18 @@
 
 <body>
 
+<h1>Categories</h1>
+
+{% for c in categories %}
+
+<div>
+
+<p>{{c.name}}</p>
+
+</div>
+
+{% endfor %}
+
 <h1>{{item.name}}</h1>
 
 <div>
