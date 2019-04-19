@@ -18,7 +18,6 @@ class Category(Base):
         """Return object data in easily serializeable format"""
         return {
             'name': self.name,
-            'id': self.id
         }
 
 
