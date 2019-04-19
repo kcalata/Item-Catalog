@@ -51,9 +51,22 @@ def newItem():
         return render_template('newItem.html', categories=categories)
 
 
-@app.route('/catalog/<string:item_name>/edit')
+@app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
-    return 'page to edit an item'
+    categories = session.query(Category).all()
+    editedItem = session.query(Item).filter_by(name=item_name).one()
+    if request.method == 'POST':
+        if request.form['dessert']:
+            editedItem.name = request.form['dessert']
+        if request.form['description']:
+            editedItem.description = request.form['description']
+        if request.form['category']:
+            editedItem.category_name = request.form['category']
+        session.add(editedItem)
+        session.commit()
+        return redirect(url_for('showCatalog'))
+    else:
+        return render_template('editItem.html',item=editedItem, categories=categories)
 
 
 @app.route('/catalog/<string:item_name>/delete')
