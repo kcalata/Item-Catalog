@@ -6,7 +6,7 @@
   function start() {
     gapi.load('auth2', function() {
       auth2 = gapi.auth2.init({
-        client_id: 'YOUR_CLIENT_ID.apps.googleusercontent.com',
+        client_id: '64046700006-7vog79gfjjqj5j3dbogittrt4cfrjnld.apps.googleusercontent.com',
         // Scopes to request in addition to 'profile' and 'email'
         //scope: 'additional_scope'
       });
@@ -15,7 +15,7 @@
 </script>
 </head>
 <body>
-    <button id="signinButton"><img src='static/btn_google_signin_dark_normal_web.png'>Sign in with Google</button>
+    <button id="signinButton" style='padding:0; border:none; background: none;'><img src='static/btn_google_signin_dark_normal_web.png'></button>
     <script>
       $('#signinButton').click(function() {
         // signInCallback defined in step 6.
