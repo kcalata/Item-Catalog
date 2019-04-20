@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item
@@ -13,6 +13,24 @@ Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+
+@app.route('/catalog/JSON')
+def catalogJSON():
+    categories = session.query(Category).all()
+    return jsonify(Categories=[c.serialize for c in categories])
+
+
+@app.route('/catalog/<string:category_name>/items/JSON')
+def categoryJSON(category_name):
+    items = session.query(Item).filter_by(category_name=category_name).all()
+    return jsonify(Items=[i.serialize for i in items])
+
+
+@app.route('/catalog/<string:category_name>/<string:item_name>/JSON')
+def itemJSON(category_name, item_name):
+    item = session.query(Item).filter_by(name=item_name).one()
+    return jsonify(Item=item.serialize)
 
 
 @app.route('/')
@@ -32,7 +50,7 @@ def showCategory(category_name):
 
 
 @app.route('/catalog/<string:category_name>/<string:item_name>')
-def showItem(category_name,item_name):
+def showItem(category_name, item_name):
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(name=category_name).one()
     item = session.query(Item).filter_by(category_name=category.name).filter_by(name=item_name).one()
