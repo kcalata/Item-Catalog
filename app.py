@@ -211,7 +211,10 @@ def itemJSON(category_name, item_name):
 def showCatalog():
     categories = session.query(Category).all()
     items = session.query(Item).order_by(Item.id.desc()).limit(6)
-    return render_template('catalog.html', categories=categories, items=items)
+    if 'username' not in login_session:
+        return render_template('publiccatalog.html', categories=categories, items=items)
+    else:
+        return render_template('catalog.html', categories=categories, items=items)
 
 
 # Show desserts in category
@@ -220,10 +223,7 @@ def showCategory(category_name):
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(name=category_name).one()
     items = session.query(Item).filter_by(category_name=category.name)
-    if 'username' not in login_session:
-        return render_template('publiccategory.html', categories=categories, category=category, items=items)
-    else:
-        return render_template('category.html', categories=categories, category=category, items=items)
+    return render_template('category.html', categories=categories, category=category, items=items)
 
 
 # Show dessert
