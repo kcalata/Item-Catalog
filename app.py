@@ -262,7 +262,7 @@ def editItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     if login_session['user_id'] != editedItem.user_id:
-        return "<script>function myFunction() {alert('You are not authorized to edit desserts. Please create your own dessert in order to edit it.');}</script><body onload='myFunction()''>"
+        return "<script>function myFunction() {alert('You are not authorized to edit this dessert. Please create your own dessert in order to edit it.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         if request.form['dessert']:
             editedItem.name = request.form['dessert']
@@ -285,7 +285,7 @@ def deleteItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     if login_session['user_id'] != deletedItem.user_id:
-        return "<script>function myFunction() {alert('You are not authorized to delete desserts. Please create your own dessert in order to delete it.');}</script><body onload='myFunction()''>"
+        return "<script>function myFunction() {alert('You are not authorized to delete this dessert. Please create your own dessert in order to delete it.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         session.delete(deletedItem)
         session.commit()
