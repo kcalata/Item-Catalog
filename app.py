@@ -230,10 +230,9 @@ def showCategory(category_name):
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def showItem(category_name, item_name):
     categories = session.query(Category).all()
-    category = session.query(Category).filter_by(name=category_name).one()
-    item = session.query(Item).filter_by(category_name=category.name).filter_by(name=item_name).one()
+    item = session.query(Item).filter_by(name=item_name).one()
     creator = getUserInfo(item.user_id)
-    if 'username' not in login_session or create.id != login_session['user_id']:
+    if 'username' not in login_session or creator.id != login_session['user_id']:
         return render_template('publicitem.html', categories=categories, item=item)
     else:
         return render_template('item.html', categories=categories, item=item)
