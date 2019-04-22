@@ -246,7 +246,7 @@ def newItem():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newItem = Item(name=request.form['dessert'], description=request.form['description'], category_name=request.form['category'])
+        newItem = Item(name=request.form['dessert'], description=request.form['description'], category_name=request.form['category'], user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
         flash('New Dessert Successfully Created')
