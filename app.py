@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
-from database_setup import Base, Category, Item
+from database_setup import Base, Category, Item, User
 
 from flask import session as login_session
 import random, string
@@ -21,6 +21,7 @@ CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 APPLICATION_NAME = 'Dessert Catalog'
 
+# Connect to Database and create database session
 engine = create_engine('sqlite:///itemcatalog.db',
 connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
@@ -29,6 +30,7 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 
+# Create anti-forgery state token
 @app.route('/login')
 def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
@@ -43,8 +45,9 @@ def gconnect():
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    # Obtain authorization code
-    code = request.data
+    # Obtain authorization code, now compatible with Python3
+    request.get_data()
+    code = request.data.decode('utf-8')
 
     try:
         # Upgrade the authorization code into a credentials object
@@ -61,8 +64,12 @@ def gconnect():
     access_token = credentials.access_token
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s'
            % access_token)
+    # Submit request, parse response - Python3 compatible
     h = httplib2.Http()
-    result = json.loads(h.request(url, 'GET')[1])
+    response = h.request(url, 'GET')[1]
+    str_response = response.decode('utf-8')
+    result = json.loads(str_response)
+
     # If there was an error in the access token info, abort.
     if result.get('error') is not None:
         response = make_response(json.dumps(result.get('error')), 500)
@@ -81,7 +88,6 @@ def gconnect():
     if result['issued_to'] != CLIENT_ID:
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
-        print "Token's client ID does not match app's."
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -94,12 +100,12 @@ def gconnect():
         return response
 
     # Store the access token in the session for later use.
-    login_session['access_token'] = credentials.access_token
+    login_session['access_token'] = access_token
     login_session['gplus_id'] = gplus_id
 
     # Get user info
     userinfo_url = "https://www.googleapis.com/oauth2/v1/userinfo"
-    params = {'access_token': credentials.access_token, 'alt': 'json'}
+    params = {'access_token': access_token, 'alt': 'json'}
     answer = requests.get(userinfo_url, params=params)
 
     data = answer.json()
@@ -107,6 +113,12 @@ def gconnect():
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
+
+    # see if user exists, if it doesn't make a new one
+    user_id = getUserID(login_session['email'])
+    if not user_id:
+        user_id = createUser(login_session)
+    login_session['user_id'] = user_id
 
     output = ''
     output += '<h1>Welcome, '
@@ -116,11 +128,33 @@ def gconnect():
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
-    print "done!"
     return output
 
 
-# Disconnect - revoke a current user's token and reset their login_session.
+# User Helper Functions
+def createUser(login_session):
+    newUser = User(name=login_session['username'], email=login_session[
+                   'email'], picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
+
+
+def getUserInfo(user_id):
+    user = session.query(User).filter_by(id=user_id).one()
+    return user
+
+
+def getUserID(email):
+    try:
+        user = session.query(User).filter_by(email=email).one()
+        return user.id
+    except:
+        return None
+
+
+# DISCONNECT - Revoke a current user's token and reset their login_session
 @app.route('/gdisconnect')
 def gdisconnect():
     # Only disconnect a connected user.
@@ -152,6 +186,7 @@ def gdisconnect():
         return response
 
 
+# JSON APIs to view Catalog Information
 @app.route('/catalog/JSON')
 def catalogJSON():
     categories = session.query(Category).all()
@@ -170,6 +205,7 @@ def itemJSON(category_name, item_name):
     return jsonify(Item=item.serialize)
 
 
+# Show all categories and latest desserts added
 @app.route('/')
 @app.route('/catalog/')
 def showCatalog():
@@ -178,42 +214,56 @@ def showCatalog():
     return render_template('catalog.html', categories=categories, items=items)
 
 
+# Show desserts in category
 @app.route('/catalog/<string:category_name>/items')
 def showCategory(category_name):
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(name=category_name).one()
     items = session.query(Item).filter_by(category_name=category.name)
-    return render_template('category.html', categories=categories, category=category, items=items)
+    if 'username' not in login_session:
+        return render_template('publiccategory.html', categories=categories, category=category, items=items)
+    else:
+        return render_template('category.html', categories=categories, category=category, items=items)
 
 
+# Show dessert
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def showItem(category_name, item_name):
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(name=category_name).one()
     item = session.query(Item).filter_by(category_name=category.name).filter_by(name=item_name).one()
-    return render_template('item.html', categories=categories, item=item)
+    creator = getUserInfo(restaurant.user_id)
+    if 'username' not in login_session or create.id != login_session['user_id']:
+        return render_template('publicitem.html', categories=categories, item=item)
+    else:
+        return render_template('item.html', categories=categories, item=item)
 
 
+# Create a new dessert
 @app.route('/catalog/new', methods=['GET', 'POST'])
 def newItem():
+    categories = session.query(Category).all()
     if 'username' not in login_session:
         return redirect('/login')
-    categories = session.query(Category).all()
     if request.method == 'POST':
         newItem = Item(name=request.form['dessert'], description=request.form['description'], category_name=request.form['category'])
         session.add(newItem)
         session.commit()
+        flash('New Dessert Successfully Created')
         return redirect(url_for('showCatalog'))
     else:
         return render_template('newItem.html', categories=categories)
 
 
+# Edit a dessert
 @app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
-    if 'username' not in login_session:
-        return redirect('/login')
     categories = session.query(Category).all()
     editedItem = session.query(Item).filter_by(name=item_name).one()
+    if 'username' not in login_session:
+        return redirect('/login')
+    if login_session['user_id'] != editedItem.user_id:
+        return "<script>function myFunction() {alert('You are not authorized to edit desserts. Please create your own dessert in order to edit it.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         if request.form['dessert']:
             editedItem.name = request.form['dessert']
@@ -223,19 +273,24 @@ def editItem(item_name):
             editedItem.category_name = request.form['category']
         session.add(editedItem)
         session.commit()
+        flash('Dessert Successfully Edited')
         return redirect(url_for('showCatalog'))
     else:
         return render_template('editItem.html',item=editedItem, categories=categories)
 
 
+# Delete a dessert
 @app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(item_name):
+    deletedItem = session.query(Item).filter_by(name=item_name).one()
     if 'username' not in login_session:
         return redirect('/login')
-    deletedItem = session.query(Item).filter_by(name=item_name).one()
+    if login_session['user_id'] != deletedItem.user_id:
+        return "<script>function myFunction() {alert('You are not authorized to delete desserts. Please create your own dessert in order to delete it.');}</script><body onload='myFunction()''>"
     if request.method == 'POST':
         session.delete(deletedItem)
         session.commit()
+        flash('Dessert Successfully Deleted')
         return redirect(url_for('showCatalog'))
     else:
         return render_template('deleteItem.html', item=deletedItem)
