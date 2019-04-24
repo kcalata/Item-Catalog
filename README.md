@@ -46,6 +46,9 @@ This will create a database of starter dessert items and categories.
  Play around in the [Dessert Catalog](http://localhost:8000/catalog).
  You may check out the desserts that I have set as the defaults. You can even add, edit, or delete your own dessert items after logging in through Google.
  
+ ### Turn off web server
+ Press CTRL+C to turn off the web server. This will stop the Dessert Catalog.
+ 
  ### Exit Vagrant
  Run the following command to exit vagrant,
  ```
