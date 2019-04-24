@@ -38,6 +38,22 @@ def showLogin():
     return render_template('login.html', STATE=state)
 
 
+@app.route('/logout')
+def logout():
+    if login_session['provider'] == 'google':
+        gdisconnect()
+        del login_session['access_token']
+        del login_session['gplus_id']
+
+    del login_session['username']
+    del login_session['email']
+    del login_session['picture']
+    del login_session['user_id']
+    del login_session['provider']
+
+    return redirect(url_for('showCatalog'))
+
+
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     # Validate state token
@@ -113,6 +129,7 @@ def gconnect():
     login_session['username'] = data['name']
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
+    login_session['provider'] = 'google'
 
     # see if user exists, if it doesn't make a new one
     user_id = getUserID(login_session['email'])
@@ -168,13 +185,6 @@ def gdisconnect():
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     if result['status'] == '200':
-        # Reset the user's sesson.
-        del login_session['access_token']
-        del login_session['gplus_id']
-        del login_session['username']
-        del login_session['email']
-        del login_session['picture']
-
         response = make_response(json.dumps('Successfully disconnected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
@@ -229,13 +239,12 @@ def showCategory(category_name):
 # Show dessert
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def showItem(category_name, item_name):
-    categories = session.query(Category).all()
     item = session.query(Item).filter_by(name=item_name).one()
     creator = getUserInfo(item.user_id)
     if 'username' not in login_session or creator.id != login_session['user_id']:
         return render_template('publicitem.html', categories=categories, item=item)
     else:
-        return render_template('item.html', categories=categories, item=item)
+        return render_template('item.html', item=item)
 
 
 # Create a new dessert
