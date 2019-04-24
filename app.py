@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
+from flask import Flask, render_template, request
+from flask import redirect, url_for, jsonify, flash
 from sqlalchemy import create_engine, asc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
 
 from flask import session as login_session
-import random, string
+import random
+import string
 
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
@@ -23,7 +25,7 @@ APPLICATION_NAME = 'Dessert Catalog'
 
 # Connect to Database and create database session
 engine = create_engine('sqlite:///itemcatalog.db',
-connect_args={'check_same_thread': False})
+                       connect_args={'check_same_thread': False})
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -33,7 +35,8 @@ session = DBSession()
 # Create anti-forgery state token
 @app.route('/login')
 def showLogin():
-    state = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(32))
+    state = ''.join(random.choice(string.ascii_uppercase +
+                                  string.digits) for x in range(32))
     login_session['state'] = state
     return render_template('login.html', STATE=state)
 
@@ -110,8 +113,8 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
+        response = make_response(
+            json.dumps('Current user is already connected.'), 200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -143,7 +146,9 @@ def gconnect():
     output += '!</h1>'
     output += '<img src="'
     output += login_session['picture']
-    output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output += ' " style = "width: 300px; height: '
+    output += '300px;border-radius: 150px;-webkit-border-radius: '
+    output += '150px;-moz-border-radius: 150px;"> '
     flash("you are now logged in as %s" % login_session['username'])
     return output
 
@@ -167,7 +172,7 @@ def getUserID(email):
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
-    except:
+    except BaseException:
         return None
 
 
@@ -222,9 +227,15 @@ def showCatalog():
     categories = session.query(Category).all()
     items = session.query(Item).order_by(Item.id.desc()).limit(6)
     if 'username' not in login_session:
-        return render_template('publiccatalog.html', categories=categories, items=items)
+        return render_template(
+            'publiccatalog.html',
+            categories=categories,
+            items=items)
     else:
-        return render_template('catalog.html', categories=categories, items=items)
+        return render_template(
+            'catalog.html',
+            categories=categories,
+            items=items)
 
 
 # Show desserts in category
@@ -233,15 +244,19 @@ def showCategory(category_name):
     categories = session.query(Category).all()
     category = session.query(Category).filter_by(name=category_name).one()
     items = session.query(Item).filter_by(category_name=category.name)
-    return render_template('category.html', categories=categories, category=category, items=items)
+    return render_template(
+        'category.html',
+        categories=categories,
+        category=category,
+        items=items)
 
 
 # Show dessert
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def showItem(category_name, item_name):
     item = session.query(Item).filter_by(name=item_name).one()
-    creator = getUserInfo(item.user_id)
-    if 'username' not in login_session or creator.id != login_session['user_id']:
+    c = getUserInfo(item.user_id)
+    if 'username' not in login_session or c.id != login_session['user_id']:
         return render_template('publicitem.html', item=item)
     else:
         return render_template('item.html', item=item)
@@ -254,7 +269,11 @@ def newItem():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newItem = Item(name=request.form['dessert'], description=request.form['description'], category_name=request.form['category'], user_id=login_session['user_id'])
+        newItem = Item(
+            name=request.form['dessert'],
+            description=request.form['description'],
+            category_name=request.form['category'],
+            user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
         flash('New Dessert Successfully Created')
@@ -271,7 +290,7 @@ def editItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     if login_session['user_id'] != editedItem.user_id:
-        return "<script>function myFunction() {alert('You are not authorized to edit this dessert. Please create your own dessert in order to edit it.');}</script><body onload='myFunction()''>"
+        return redirect(url_for('showCatalog'))
     if request.method == 'POST':
         if request.form['dessert']:
             editedItem.name = request.form['dessert']
@@ -284,7 +303,10 @@ def editItem(item_name):
         flash('Dessert Successfully Edited')
         return redirect(url_for('showCatalog'))
     else:
-        return render_template('editItem.html',item=editedItem, categories=categories)
+        return render_template(
+            'editItem.html',
+            item=editedItem,
+            categories=categories)
 
 
 # Delete a dessert
@@ -294,7 +316,7 @@ def deleteItem(item_name):
     if 'username' not in login_session:
         return redirect('/login')
     if login_session['user_id'] != deletedItem.user_id:
-        return "<script>function myFunction() {alert('You are not authorized to delete this dessert. Please create your own dessert in order to delete it.');}</script><body onload='myFunction()''>"
+        return redirect(url_for('showCatalog'))
     if request.method == 'POST':
         session.delete(deletedItem)
         session.commit()
