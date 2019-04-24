@@ -1,4 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
 
 <body>
 
@@ -20,27 +28,39 @@
     </div>
 </nav>
 
-<h1>New Dessert Item</h1>
+<div class='container-fluid'>
 
-<form action="{{url_for('newItem')}}" method='POST'>
+    <div class='row'>
 
-<dl>
-<dt>Dessert:</dt>
-<dd><input type='text' size='30' name='dessert' required></dd>
-<dt>Description:</dt>
-<dd><textarea name='description' rows='5' cols='40' required></textarea></dd>
-<dt>Category:</dt>
-<dd><select name='category'>
-    {% for c in categories %}
-    <option value={{c.name}}>{{c.name}}</option>
-    {% endfor %}
-</select></dd>
-</dl>
+        <div class='col-xs-12'>
+
+            <h1>New Dessert Item</h1>
+
+            <form action="{{url_for('newItem')}}" method='POST'>
+
+                <dl>
+                    <dt>Dessert:</dt>
+                    <dd><input type='text' size='30' name='dessert' required></dd>
+                    <dt>Description:</dt>
+                    <dd><textarea name='description' rows='5' cols='40' required></textarea></dd>
+                    <dt>Category:</dt>
+                    <dd><select name='category'>
+                        {% for c in categories %}
+                        <option value={{c.name}}>{{c.name}}</option>
+                        {% endfor %}
+                    </select></dd>
+                </dl>
 
 
-<input type='submit' value='Create'>
+                <input type='submit' value='Create'>
 
-</form>
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
 
 </body>
 
