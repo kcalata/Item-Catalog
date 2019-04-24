@@ -41,6 +41,7 @@ def showLogin():
     return render_template('login.html', STATE=state)
 
 
+# Resets login session and logs user out
 @app.route('/logout')
 def logout():
     if login_session['provider'] == 'google':
