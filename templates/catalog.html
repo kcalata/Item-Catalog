@@ -1,32 +1,60 @@
-<html>
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+</head>
 
 <body>
 
-<h1>Desserts</h1>
+<div class='container-fluid'>
 
-{% for c in categories %}
+    <div class='row'>
 
-<div>
+        <div class='col-xs-4'>
 
-<p><a href='{{url_for('showCategory', category_name = c.name)}}'>{{c.name}}</a></p>
+            <h1>Desserts</h1>
+
+            {% for c in categories %}
+
+            <a href='{{url_for('showCategory', category_name = c.name)}}'>{{c.name}}</a>
+
+            </br>
+
+            {% endfor %}
+
+        </div>
+
+        <div class='col-xs-8'>
+
+            <a href='{{url_for('newItem')}}'>Add Item</a>
+
+            <h1>Latest Items</h1>
+
+            {% for i in items %}
+
+            <a href='{{url_for('showItem', category_name = i.category_name, item_name = i.name)}}'>{{i.name}}</a> (<em>{{i.category_name}}</em>)
+
+            </br>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
 
 </div>
-
-{% endfor %}
-
-<a href='{{url_for('newItem')}}'>Add Item</a>
-
-<h1>Latest Items</h1>
-
-{% for i in items %}
-
-<div>
-
-<p><a href='{{url_for('showItem', category_name = i.category_name, item_name = i.name)}}'>{{i.name}}</a></p>
-
-</div>
-
-{% endfor %}
 
 </body>
 

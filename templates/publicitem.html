@@ -1,24 +1,28 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+</head>
 
 <body>
 
-<h1>Desserts</h1>
+<div class='container-fluid'>
 
-{% for c in categories %}
+    <div class='row'>
 
-<div>
+        <div class='col-xs-12'>
 
-<p><a href='{{url_for('showCategory', category_name = c.name)}}'>{{c.name}}</a></p>
+            <h1>{{item.name}}</h1>
 
-</div>
+            Description: {{item.description}}
 
-{% endfor %}
+        </div>
 
-<h1>{{item.name}}</h1>
-
-<div>
-
-<p>Description: {{item.description}}</p>
+    </div>
 
 </div>
 
