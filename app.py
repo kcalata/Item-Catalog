@@ -38,7 +38,7 @@ def showLogin():
     state = ''.join(random.choice(string.ascii_uppercase +
                                   string.digits) for x in range(32))
     login_session['state'] = state
-    return render_template('login.html', STATE=state)
+    return render_template('login.html', STATE=state, CLIENT_ID=CLIENT_ID)
 
 
 # Resets login session and logs user out
@@ -130,7 +130,7 @@ def gconnect():
 
     data = answer.json()
 
-    login_session['username'] = data['name']
+    login_session['username'] = data.get('name', '')
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
     login_session['provider'] = 'google'
@@ -165,7 +165,7 @@ def createUser(login_session):
 
 
 def getUserInfo(user_id):
-    user = session.query(User).filter_by(id=user_id).one()
+    user = session.query(User).filter_by(id=user_id).one_or_none()
     return user
 
 
